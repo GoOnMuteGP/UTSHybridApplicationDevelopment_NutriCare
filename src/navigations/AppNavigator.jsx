@@ -4,7 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import Login from "../pages/Login";
 import SignUp from "../pages/SignUp";
 import Home from "../pages/Home";
-import Menu from "../pages/Menu";
+import Cart from "../pages/Cart";
 import MenuDetail from "../pages/MenuDetail";
 import Consultation from "../pages/Consultation";
 
@@ -20,8 +20,8 @@ export default function AppNavigator() {
           <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
           <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }} />
           <Stack.Screen name="Home" component={Home} />
-          <Stack.Screen name="Menu" component={Menu} />
           <Stack.Screen name="MenuDetail" component={MenuDetail} />
+          <Stack.Screen name="Cart" component={Cart} />
           <Stack.Screen name="Consultation" component={Consultation} />
         </Stack.Navigator>
       </NavigationContainer>

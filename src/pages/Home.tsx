@@ -1,16 +1,13 @@
-import React, { useMemo, useState } from "react";
+
+import React, { useEffect, useMemo, useState } from "react";
 import {
     View,
     Text,
-    Image,
-    type ImageSourcePropType,
     TextInput,
     Pressable,
     StatusBar,
     ScrollView,
     StyleSheet,
-    AlertButton,
-    KeyboardTypeOptions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
@@ -23,16 +20,21 @@ import AppButton from "../components/AppButton";
 import { appColors } from "../components/colors";
 import { useCustomAlert } from "../hooks/CustomAlert";
 
-
 import { categories as dataCategories } from "../data/DataCategory";
 import { meals as dataMeals } from "../data/DataMeals";
+import {
+    addCartItem,
+    getCartItems,
+    subscribeCartChanges,
+    type CartItem,
+} from "./Cart";
 
 type RootStackParamList = {
     Login: undefined;
     SignUp: undefined;
     Home: undefined;
-    Menu: undefined;
     MenuDetail: { menuId: string };
+    Cart: undefined;
     Consultation: undefined;
 };
 
@@ -49,14 +51,18 @@ export default function Home() {
 
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("All");
-    const [cart, setCart] = useState<string[]>([]);
+    const [cart, setCart] = useState<CartItem[]>(getCartItems);
+
+    useEffect(() => {
+        return subscribeCartChanges(setCart);
+    }, []);
 
     const filteredMeals = useMemo(() => {
-        return dataMeals.filter((meals) => {
+        return dataMeals.filter((meal) => {
             const matchCategory =
-                category === "All" || meals.category === category;
+                category === "All" || meal.category === category;
 
-            const matchSearch = meals.name
+            const matchSearch = meal.name
                 .toLowerCase()
                 .includes(search.toLowerCase());
 
@@ -65,23 +71,48 @@ export default function Home() {
     }, [search, category]);
 
     const addToCart = (id: string) => {
-        if (cart.includes(id)) {
+        const meal = dataMeals.find((item) => item.id === id);
+
+        if (!meal) {
+            showAlert("Cart", "Menu tidak ditemukan.");
+            return;
+        }
+
+        const alreadyAdded = cart.some(
+            (item) => item.meal.id === id,
+        );
+
+        if (alreadyAdded) {
             showAlert("Cart", "Menu sudah ada di cart.");
             return;
         }
 
-        setCart([...cart, id]);
-        showAlert("Added to Cart", "Menu berhasil ditambahkan.");
+        addCartItem(meal, 1);
+
+        showAlert(
+            "Added to Cart",
+            "Menu berhasil ditambahkan.",
+        );
     };
+
+    const totalCartItems = cart.reduce(
+        (total, item) => total + item.quantity,
+        0,
+    );
 
     return (
         <SafeAreaView style={styles.container} edges={["top"]}>
+            <StatusBar barStyle="dark-content" />
+
             <AppNavbar
                 title="NutriCare"
                 subtitle="Home"
                 rightIcon="bell-outline"
                 onRightPress={() =>
-                    showAlert("Notifications", "Belum ada notifikasi.")
+                    showAlert(
+                        "Notifications",
+                        "Belum ada notifikasi.",
+                    )
                 }
             />
 
@@ -94,12 +125,16 @@ export default function Home() {
                         <Text style={styles.greetingTitle}>
                             Good morning
                         </Text>
+
                         <Text style={styles.subtitle}>
                             Ready to nourish your body today?
                         </Text>
                     </View>
 
-                    <AppImage name="avatar" style={styles.avatar} />
+                    <AppImage
+                        name="avatar"
+                        style={styles.avatar}
+                    />
                 </View>
 
                 <View style={styles.searchBox}>
@@ -135,7 +170,8 @@ export default function Home() {
                             <Text
                                 style={[
                                     styles.categoryText,
-                                    category === item && styles.categoryTextActive,
+                                    category === item &&
+                                    styles.categoryTextActive,
                                 ]}
                             >
                                 {item}
@@ -149,8 +185,12 @@ export default function Home() {
                         Recommended for You
                     </Text>
 
-                    <Pressable onPress={() => navigation.navigate("Menu")}>
-                        <Text style={styles.link}>See all</Text>
+                    <Pressable
+                        onPress={() => navigation.navigate("Cart")}
+                    >
+                        <Text style={styles.link}>
+                            See all
+                        </Text>
                     </Pressable>
                 </View>
 
@@ -159,64 +199,78 @@ export default function Home() {
                         No meals found.
                     </Text>
                 ) : (
-                    filteredMeals.map((meal) => (
-                        <View key={meal.id} style={styles.mealCard}>
-                            <Pressable
-                                onPress={() =>
-                                    navigation.navigate("MenuDetail", {
-                                        menuId: meal.id,
-                                    })
-                                }
+                    filteredMeals.map((meal) => {
+                        const isInCart = cart.some(
+                            (item) => item.meal.id === meal.id,
+                        );
+
+                        return (
+                            <View
+                                key={meal.id}
+                                style={styles.mealCard}
                             >
-                                <AppImage
-                                    name={meal.image}
-                                    style={styles.mealImage}
-                                />
-                            </Pressable>
+                                <Pressable
+                                    onPress={() =>
+                                        navigation.navigate("MenuDetail", {
+                                            menuId: meal.id,
+                                        })
+                                    }
+                                >
+                                    <AppImage
+                                        name={meal.image}
+                                        style={styles.mealImage}
+                                    />
+                                </Pressable>
 
-                            <View style={styles.mealContent}>
-                                <Text style={styles.mealName}>
-                                    {meal.name}
-                                </Text>
-
-                                <Text style={styles.mealInfo}>
-                                    {meal.calories} kcal · {meal.nutrition}
-                                </Text>
-
-                                <Text style={styles.mealCategory}>
-                                    {meal.category}
-                                </Text>
-
-                                <View style={styles.mealBottom}>
-                                    <Text style={styles.price}>
-                                        {meal.price}
+                                <View style={styles.mealContent}>
+                                    <Text style={styles.mealName}>
+                                        {meal.name}
                                     </Text>
 
-                                    <Pressable
-                                        onPress={() => addToCart(meal.id)}
-                                        style={styles.addButton}
-                                    >
-                                        <MaterialCommunityIcons
-                                            name={
-                                                cart.includes(meal.id)
-                                                    ? "check"
-                                                    : "plus"
+                                    <Text style={styles.mealInfo}>
+                                        {meal.calories} kcal · {meal.nutrition}
+                                    </Text>
+
+                                    <Text style={styles.mealCategory}>
+                                        {meal.category}
+                                    </Text>
+
+                                    <View style={styles.mealBottom}>
+                                        <Text style={styles.price}>
+                                            {meal.price}
+                                        </Text>
+
+                                        <Pressable
+                                            onPress={() =>
+                                                addToCart(meal.id)
                                             }
-                                            size={21}
-                                            color={appColors.white}
-                                        />
-                                    </Pressable>
+                                            style={styles.addButton}
+                                        >
+                                            <MaterialCommunityIcons
+                                                name={
+                                                    isInCart
+                                                        ? "check"
+                                                        : "plus"
+                                                }
+                                                size={21}
+                                                color={appColors.white}
+                                            />
+                                        </Pressable>
+                                    </View>
                                 </View>
                             </View>
-                        </View>
-                    ))
+                        );
+                    })
                 )}
 
                 <View style={styles.sectionHeader}>
                     <Text style={styles.sectionTitle}>
                         Featured Specialist
                     </Text>
-                    <Text style={styles.available}>Available Now</Text>
+
+                    <Text style={styles.available}>
+                        Available Now
+                    </Text>
                 </View>
 
                 <View style={styles.specialistCard}>
@@ -229,9 +283,11 @@ export default function Home() {
                         <Text style={styles.specialistName}>
                             Dr. Sarah Alperin, RD
                         </Text>
+
                         <Text style={styles.mealInfo}>
                             Clinical Dietitian
                         </Text>
+
                         <Text style={styles.rating}>
                             ★ 4.9 (124 reviews)
                         </Text>
@@ -240,7 +296,9 @@ export default function Home() {
 
                 <AppButton
                     title="Consult a Specialist"
-                    onPress={() => navigation.navigate("Consultation")}
+                    onPress={() =>
+                        navigation.navigate("Consultation")
+                    }
                 />
 
                 <View style={styles.premiumCard}>
@@ -263,7 +321,7 @@ export default function Home() {
                         onPress={() =>
                             showAlert(
                                 "Premium",
-                                "Fitur Premium belum tersedia."
+                                "Fitur Premium belum tersedia.",
                             )
                         }
                     />
@@ -288,12 +346,9 @@ export default function Home() {
 
                 <BottomNavItem
                     icon="shopping"
-                    label={`Cart (${cart.length})`}
+                    label={`Cart (${totalCartItems})`}
                     onPress={() =>
-                        showAlert(
-                            "Cart",
-                            `${cart.length} item di cart.`
-                        )
+                        navigation.navigate("Cart")
                     }
                 />
 
@@ -301,7 +356,10 @@ export default function Home() {
                     icon="crown"
                     label="Premium"
                     onPress={() =>
-                        showAlert("Premium", "Fitur belum tersedia.")
+                        showAlert(
+                            "Premium",
+                            "Fitur belum tersedia.",
+                        )
                     }
                 />
             </View>
@@ -323,17 +381,26 @@ function BottomNavItem({
     onPress,
 }: BottomNavItemProps) {
     return (
-        <Pressable style={styles.navItem} onPress={onPress}>
+        <Pressable
+            style={styles.navItem}
+            onPress={onPress}
+        >
             <MaterialCommunityIcons
                 name={icon}
                 size={23}
-                color={active ? appColors.primary : appColors.secondary}
+                color={
+                    active
+                        ? appColors.primary
+                        : appColors.secondary
+                }
             />
 
             <Text
                 style={[
                     styles.navLabel,
-                    active && { color: appColors.primary },
+                    active && {
+                        color: appColors.primary,
+                    },
                 ]}
             >
                 {label}
@@ -389,23 +456,19 @@ const styles = StyleSheet.create({
         gap: 10,
         paddingHorizontal: 16,
     },
-
     category: {
         paddingVertical: 10,
         paddingHorizontal: 18,
         borderRadius: 20,
         backgroundColor: "#F0F0F0",
     },
-
     categoryActive: {
         backgroundColor: "#2E7D32",
     },
-
     categoryText: {
         fontSize: 14,
         color: "#555555",
     },
-
     categoryTextActive: {
         color: "#FFFFFF",
         fontWeight: "bold",
