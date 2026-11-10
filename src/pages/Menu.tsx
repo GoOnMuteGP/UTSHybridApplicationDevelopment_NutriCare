@@ -8,5 +8,34 @@ import {
     StatusBar,
     ScrollView,
     StyleSheet,
+    AlertButton,
+    KeyboardTypeOptions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+import { useCustomAlert } from "../components/CustomAlert";
+
+type RootStackParamList = {
+    Login: undefined;
+    SignUp: undefined;
+    Home: undefined;
+    Menu: undefined;
+    MenuDetail: { menuId: string };
+    Consultation: undefined;
+};
+
+type MenuNavigationProp = NativeStackNavigationProp<RootStackParamList, "Menu">;
+
+export default function Menu() {
+    const navigation = useNavigation<MenuNavigationProp>()
+
+    const { showAlert } = useCustomAlert();
+
+    return (
+        <ScrollView>
+
+        </ScrollView>
+    );
+}

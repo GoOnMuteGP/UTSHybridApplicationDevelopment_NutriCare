@@ -2,15 +2,20 @@ import React, { useState } from "react";
 import {
     View,
     Text,
+    Image,
     TextInput,
     Pressable,
+    StatusBar,
     ScrollView,
     StyleSheet,
-    Alert,
+    AlertButton,
+    KeyboardTypeOptions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import type { KeyboardTypeOptions } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+import { useCustomAlert } from "../components/CustomAlert";
 
 const colors = {
     primary: "#33664b",
@@ -20,7 +25,6 @@ const colors = {
     input: "#eff5ef",
     white: "#ffffff",
 };
-
 interface InputFieldProps {
     label: string;
     value: string;
@@ -33,14 +37,16 @@ type RootStackParamList = {
     Login: undefined;
     SignUp: undefined;
     Home: undefined;
+    Menu: undefined;
+    MenuDetail: { menuId: string };
+    Consultation: undefined;
 };
 
-type SignUpProps = NativeStackScreenProps<
-    RootStackParamList,
-    "SignUp"
->;
+type SignUpNavigationProp = NativeStackNavigationProp<RootStackParamList, "SignUp">;
 
-export default function SignUp({ navigation }: SignUpProps) {
+export default function SignUp() {
+    const navigation = useNavigation<SignUpNavigationProp>()
+
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
@@ -53,6 +59,7 @@ export default function SignUp({ navigation }: SignUpProps) {
 
     const [showPassword, setShowPassword] = useState(false);
 
+    const { showAlert } = useCustomAlert();
 
     const handleSignUp = () => {
         if (
@@ -66,36 +73,39 @@ export default function SignUp({ navigation }: SignUpProps) {
             !password ||
             !confirmPassword
         ) {
-            Alert.alert("Pendaftaran Gagal", "Semua kolom wajib diisi.");
+            showAlert("Pendaftaran Gagal", "Semua kolom wajib diisi.");
             return;
         }
 
-        if (!/^[^\s@]+@gmail\.com$/i.test(email)) {
-            Alert.alert("Email Tidak Valid", "Email harus menggunakan @gmail.com.");
+        if (!/^[^\s@]+@(gmail\.com|binus\.ac\.id|yahoo\.com)$/i.test(email.trim())) {
+            showAlert(
+                "Email Tidak Valid",
+                "Email harus menggunakan @gmail.com, @binus.ac.id, atau @yahoo.com."
+            );
             return;
         }
 
         if (password.length <= 8) {
-            Alert.alert("Password Tidak Valid", "Password harus lebih dari 8 karakter.");
+            showAlert("Password Tidak Valid", "Password harus lebih dari 8 karakter.");
             return;
         }
 
         if (!/[0-9]/.test(password)) {
-            Alert.alert("Password Tidak Valid", "Password harus mengandung angka.");
+            showAlert("Password Tidak Valid", "Password harus mengandung angka.");
             return;
         }
 
         if (!/[^A-Za-z0-9]/.test(password)) {
-            Alert.alert("Password Tidak Valid", "Password harus mengandung simbol.");
+            showAlert("Password Tidak Valid", "Password harus mengandung simbol.");
             return;
         }
 
         if (password !== confirmPassword) {
-            Alert.alert("Password Tidak Cocok", "Konfirmasi password tidak sama.");
+            showAlert("Password Tidak Cocok", "Konfirmasi password tidak sama.");
             return;
         }
 
-        Alert.alert(
+        showAlert(
             "Pendaftaran Berhasil!",
             "Akun NutriCare berhasil dibuat.",
             [
@@ -106,7 +116,6 @@ export default function SignUp({ navigation }: SignUpProps) {
             ]
         );
     };
-
 
     const InputField = ({
         label,
@@ -242,7 +251,7 @@ export default function SignUp({ navigation }: SignUpProps) {
                             <TextInput
                                 value={password}
                                 onChangeText={setPassword}
-                                placeholder="Minimum 8 characters"
+                                placeholder="More than 8 characters and contain numbers and symbols"
                                 placeholderTextColor={colors.secondary}
                                 secureTextEntry={!showPassword}
                                 style={styles.passwordInput}

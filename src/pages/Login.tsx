@@ -2,13 +2,20 @@ import React, { useState } from "react";
 import {
     View,
     Text,
+    Image,
     TextInput,
     Pressable,
+    StatusBar,
     ScrollView,
     StyleSheet,
-    Alert,
+    AlertButton,
+    KeyboardTypeOptions,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+import { useCustomAlert } from "../components/CustomAlert";
 
 const colors = {
     primary: "#33664b",
@@ -42,29 +49,66 @@ const fontSize = {
     lg: 24,
 };
 
+type RootStackParamList = {
+    Login: undefined;
+    SignUp: undefined;
+    Home: undefined;
+    Menu: undefined;
+    MenuDetail: { menuId: string };
+    Consultation: undefined;
+};
+
+type LoginNavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
+
 export default function LoginScreen() {
-    const navigation = useNavigation<any>();
+    const navigation = useNavigation<LoginNavigationProp>()
 
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
+    const validEmail = /^[^\s@]+@(gmail\.com|binus\.ac\.id|yahoo\.com)$/i.test(email);
+
+    const { showAlert } = useCustomAlert();
+
     const handleSignIn = () => {
-        if (!email.trim() || !password) {
-            Alert.alert("Login Gagal", "Email dan password wajib diisi.");
+        if (!email.trim() && !password) {
+            showAlert(
+                "Login Gagal",
+                "Email dan password wajib diisi."
+            );
             return;
         }
 
-        if (!/^[^\s@]+@gmail\.com$/i.test(email)) {
-            Alert.alert(
+        if (!email.trim()) {
+            showAlert(
+                "Login Gagal",
+                "Email wajib diisi."
+            );
+            return;
+        }
+
+        const validEmail =
+            /^[^\s@]+@(gmail\.com|binus\.ac\.id|yahoo\.com)$/i.test(email.trim());
+
+        if (!validEmail) {
+            showAlert(
                 "Email Tidak Valid",
-                "Email harus menggunakan @gmail.com."
+                "Email harus menggunakan @gmail.com, @binus.ac.id, atau @yahoo.com."
+            );
+            return;
+        }
+
+        if (!password) {
+            showAlert(
+                "Login Gagal",
+                "Password wajib diisi."
             );
             return;
         }
 
         if (password.length <= 8) {
-            Alert.alert(
+            showAlert(
                 "Password Tidak Valid",
                 "Password harus lebih dari 8 karakter."
             );
@@ -72,22 +116,22 @@ export default function LoginScreen() {
         }
 
         if (!/[0-9]/.test(password)) {
-            Alert.alert(
+            showAlert(
                 "Password Tidak Valid",
-                "Password harus mengandung angka."
+                "Password harus mengandung minimal satu angka."
             );
             return;
         }
 
         if (!/[^A-Za-z0-9]/.test(password)) {
-            Alert.alert(
+            showAlert(
                 "Password Tidak Valid",
-                "Password harus mengandung simbol."
+                "Password harus mengandung minimal satu simbol."
             );
             return;
         }
 
-        Alert.alert(
+        showAlert(
             "Login Berhasil",
             "Selamat datang di NutriCare!"
         );
@@ -123,16 +167,6 @@ export default function LoginScreen() {
                 <View style={styles.inputGroup}>
                     <View style={styles.passwordHeader}>
                         <Text style={styles.label}>Password</Text>
-                        <Pressable
-                            onPress={() =>
-                                Alert.alert(
-                                    "Lupa Password",
-                                    "Fitur lupa password belum tersedia."
-                                )
-                            }
-                        >
-                            <Text style={styles.forgotText}>Lupa?</Text>
-                        </Pressable>
                     </View>
 
                     <View style={styles.passwordContainer}>
@@ -174,7 +208,7 @@ export default function LoginScreen() {
                     <Pressable
                         onPress={() => navigation.navigate("SignUp")}
                     >
-                        <Text style={styles.signupLink}>Daftar</Text>
+                        <Text style={styles.signupLink}>SignUp</Text>
                     </Pressable>
                 </View>
             </View>
