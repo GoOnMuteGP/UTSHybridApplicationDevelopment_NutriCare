@@ -8,7 +8,7 @@ import Menu from "../pages/Menu";
 import MenuDetail from "../pages/MenuDetail";
 import Consultation from "../pages/Consultation";
 
-import { AlertProvider } from "../components/CustomAlert";
+import { AlertProvider } from "../hooks/CustomAlert";
 
 const Stack = createNativeStackNavigator();
 

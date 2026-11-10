@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
     View,
     Text,
     Image,
+    type ImageSourcePropType,
     TextInput,
     Pressable,
     StatusBar,
@@ -14,102 +15,57 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-import { useCustomAlert } from "../components/CustomAlert";
-
-const colors = {
-    primary: "#33664b",
-    secondary: "#58605c",
-    surface: "#f5fbf4",
-    "on-surface": "#171d19",
-    "surface-container": "#eaefe9",
-    "surface-container-low": "#eff5ef",
-    "surface-container-high": "#e4eae3",
-    "surface-container-lowest": "#ffffff",
-    "on-primary": "#ffffff",
-};
-
-const spacing = {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-};
-
-const borderRadius = {
-    lg: 8,
-    xl: 12,
-};
-
-const fontSize = {
-    xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 24,
-};
+import AppNavbar from "../components/AppNavbar";
+import AppButton from "../components/AppButton";
+import AppTextInput from "../components/AppTextInput";
+import { appColors } from "../components/colors";
+import { useCustomAlert } from "../hooks/CustomAlert";
 
 type RootStackParamList = {
     Login: undefined;
     SignUp: undefined;
     Home: undefined;
-    Menu: undefined;
-    MenuDetail: { menuId: string };
-    Consultation: undefined;
 };
 
-type LoginNavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
+type NavigationProp = NativeStackNavigationProp<
+    RootStackParamList,
+    "Login"
+>;
 
-export default function LoginScreen() {
-    const navigation = useNavigation<LoginNavigationProp>()
+export default function Login() {
+    const navigation = useNavigation<NavigationProp>();
+    const { showAlert } = useCustomAlert();
 
-    const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const validEmail = /^[^\s@]+@(gmail\.com|binus\.ac\.id|yahoo\.com)$/i.test(email);
-
-    const { showAlert } = useCustomAlert();
-
-    const handleSignIn = () => {
-        if (!email.trim() && !password) {
+    const handleLogin = () => {
+        if (!email.trim() || !password) {
             showAlert(
-                "Login Gagal",
+                "Login Failed",
                 "Email dan password wajib diisi."
             );
             return;
         }
 
-        if (!email.trim()) {
-            showAlert(
-                "Login Gagal",
-                "Email wajib diisi."
-            );
-            return;
-        }
-
         const validEmail =
-            /^[^\s@]+@(gmail\.com|binus\.ac\.id|yahoo\.com)$/i.test(email.trim());
+            /^[^\s@]+@(gmail\.com|binus\.ac\.id|yahoo\.com)$/i.test(
+                email.trim()
+            );
 
         if (!validEmail) {
             showAlert(
-                "Email Tidak Valid",
-                "Email harus menggunakan @gmail.com, @binus.ac.id, atau @yahoo.com."
-            );
-            return;
-        }
-
-        if (!password) {
-            showAlert(
-                "Login Gagal",
-                "Password wajib diisi."
+                "Invalid Email",
+                "Gunakan Gmail, BINUS, atau Yahoo."
             );
             return;
         }
 
         if (password.length <= 8) {
             showAlert(
-                "Password Tidak Valid",
+                "Invalid Password",
                 "Password harus lebih dari 8 karakter."
             );
             return;
@@ -117,292 +73,233 @@ export default function LoginScreen() {
 
         if (!/[0-9]/.test(password)) {
             showAlert(
-                "Password Tidak Valid",
-                "Password harus mengandung minimal satu angka."
+                "Invalid Password",
+                "Password harus memiliki minimal satu angka."
             );
             return;
         }
 
         if (!/[^A-Za-z0-9]/.test(password)) {
             showAlert(
-                "Password Tidak Valid",
-                "Password harus mengandung minimal satu simbol."
+                "Invalid Password",
+                "Password harus memiliki minimal satu simbol."
             );
             return;
         }
 
         showAlert(
-            "Login Berhasil",
+            "Login Successful",
             "Selamat datang di NutriCare!"
         );
+
+        navigation.replace("Home");
     };
 
     return (
-        <ScrollView
-            style={styles.container}
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
-        >
-            <View style={styles.header}>
-                <Text style={styles.appName}>NutriCare</Text>
-                <Text style={styles.subtitle}>
-                    Simple, balanced daily nutrition
-                </Text>
-            </View>
+        <SafeAreaView style={styles.container}>
+            <AppNavbar title="NutriCare" subtitle="Welcome back" />
 
-            <View style={styles.form}>
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Email</Text>
-                    <TextInput
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="nama@gmail.com"
-                        placeholderTextColor={colors.secondary}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                        style={styles.input}
-                    />
-                </View>
-
-                <View style={styles.inputGroup}>
-                    <View style={styles.passwordHeader}>
-                        <Text style={styles.label}>Password</Text>
+            <ScrollView
+                contentContainerStyle={styles.content}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={styles.header}>
+                    <View style={styles.logo}>
+                        <MaterialCommunityIcons
+                            name="leaf"
+                            size={36}
+                            color={appColors.primary}
+                        />
                     </View>
 
-                    <View style={styles.passwordContainer}>
-                        <TextInput
-                            value={password}
-                            onChangeText={setPassword}
-                            placeholder="Masukkan password"
-                            placeholderTextColor={colors.secondary}
-                            secureTextEntry={!showPassword}
-                            style={styles.passwordInput}
-                        />
+                    <Text style={styles.title}>
+                        Welcome Back!
+                    </Text>
+
+                    <Text style={styles.subtitle}>
+                        Sign in to continue your healthy journey.
+                    </Text>
+                </View>
+
+                <View style={styles.form}>
+                    <AppTextInput
+                        label="Email Address"
+                        placeholder="nama@gmail.com"
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        leadingIcon="email-outline"
+                    />
+
+                    <AppTextInput
+                        label="Password"
+                        placeholder="Enter your password"
+                        value={password}
+                        onChangeText={setPassword}
+                        secureTextEntry
+                        leadingIcon="lock-outline"
+                    />
+
+                    <Pressable
+                        style={styles.forgotButton}
+                        onPress={() =>
+                            showAlert(
+                                "Forgot Password",
+                                "Fitur reset password belum tersedia."
+                            )
+                        }
+                    >
+                        <Text style={styles.forgotText}>
+                            Forgot Password?
+                        </Text>
+                    </Pressable>
+
+                    <AppButton
+                        title="Sign In"
+                        onPress={handleLogin}
+                    />
+
+                    <View style={styles.divider}>
+                        <View style={styles.line} />
+                        <Text style={styles.orText}>OR</Text>
+                        <View style={styles.line} />
+                    </View>
+
+                    <AppButton
+                        title="Continue with Google"
+                        variant="outline"
+                        onPress={() =>
+                            showAlert(
+                                "Google Login",
+                                "Google authentication belum tersedia."
+                            )
+                        }
+                    />
+
+                    <AppButton
+                        title="Continue with Apple"
+                        variant="outline"
+                        onPress={() =>
+                            showAlert(
+                                "Apple Login",
+                                "Apple authentication belum tersedia."
+                            )
+                        }
+                    />
+
+                    <View style={styles.signupPrompt}>
+                        <Text style={styles.promptText}>
+                            Don't have an account?
+                        </Text>
 
                         <Pressable
-                            onPress={() => setShowPassword(!showPassword)}
+                            onPress={() =>
+                                navigation.navigate("SignUp")
+                            }
                         >
-                            <Text style={styles.showPassword}>
-                                {showPassword ? "Sembunyikan" : "Lihat"}
+                            <Text style={styles.signupLink}>
+                                Sign Up
                             </Text>
                         </Pressable>
                     </View>
                 </View>
 
-                <Text style={styles.verificationText}>
-                    Masuk untuk melanjutkan ke NutriCare
+                <Text style={styles.terms}>
+                    By continuing, you agree to our Terms of Service
+                    and Privacy Policy.
                 </Text>
-
-                <Pressable
-                    style={styles.submitButton}
-                    onPress={handleSignIn}
-                >
-                    <Text style={styles.submitText}>Masuk</Text>
-                </Pressable>
-
-                <View style={styles.signupPrompt}>
-                    <Text style={styles.signupPromptText}>
-                        Belum punya akun?
-                    </Text>
-
-                    <Pressable
-                        onPress={() => navigation.navigate("SignUp")}
-                    >
-                        <Text style={styles.signupLink}>SignUp</Text>
-                    </Pressable>
-                </View>
-            </View>
-
-            <View style={styles.dividerContainer}>
-                <View style={styles.divider} />
-
-                <Text style={styles.dividerText}>
-                    atau lanjutkan dengan
-                </Text>
-
-                <View style={styles.divider} />
-            </View>
-
-            <View style={styles.socialContainer}>
-                <Pressable style={styles.socialButton}>
-                    <Text style={styles.socialText}>G  Google</Text>
-                </Pressable>
-
-                <Pressable style={styles.socialButton}>
-                    <Text style={styles.socialText}>Apple</Text>
-                </Pressable>
-            </View>
-
-            <Text style={styles.terms}>
-                Dengan melanjutkan, kamu menyetujui{" "}
-                <Text style={styles.termsLink}>
-                    Ketentuan Layanan
-                </Text>
-                {" "}dan{" "}
-                <Text style={styles.termsLink}>
-                    Kebijakan Privasi
-                </Text>.
-            </Text>
-        </ScrollView>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.surface,
+        backgroundColor: appColors.surface,
     },
     content: {
+        flexGrow: 1,
         width: "100%",
-        maxWidth: 448,
+        maxWidth: 480,
         alignSelf: "center",
-        paddingHorizontal: spacing.md,
-        paddingBottom: spacing.xl,
+        padding: 20,
+        justifyContent: "center",
     },
     header: {
         alignItems: "center",
-        paddingTop: spacing.xl,
-        paddingBottom: spacing.sm,
+        marginBottom: 32,
     },
-    appName: {
-        fontSize: fontSize.lg,
-        fontWeight: "600",
-        color: colors["on-surface"],
-    },
-    subtitle: {
-        fontSize: fontSize.sm,
-        color: colors.secondary,
-        marginTop: spacing.xs,
-    },
-    form: {
-        backgroundColor: colors["surface-container-lowest"],
-        borderRadius: borderRadius.xl,
-        padding: 20,
-        gap: spacing.md,
-        marginTop: spacing.lg,
-    },
-    inputGroup: {
-        gap: spacing.sm,
-    },
-    label: {
-        fontSize: fontSize.sm,
-        fontWeight: "500",
-        color: colors["on-surface"],
-    },
-    input: {
-        width: "100%",
-        height: 48,
-        paddingHorizontal: spacing.md,
-        borderRadius: borderRadius.xl,
-        backgroundColor: colors["surface-container-low"],
-        color: colors["on-surface"],
-        fontSize: fontSize.sm,
-    },
-    passwordHeader: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-    },
-    forgotText: {
-        fontSize: fontSize.xs,
-        color: colors.primary,
-    },
-    passwordContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: colors["surface-container-low"],
-        borderRadius: borderRadius.xl,
-        paddingRight: spacing.md,
-    },
-    passwordInput: {
-        flex: 1,
-        height: 48,
-        paddingHorizontal: spacing.md,
-        color: colors["on-surface"],
-        fontSize: fontSize.sm,
-    },
-    showPassword: {
-        color: colors.secondary,
-        fontSize: fontSize.sm,
-    },
-    verificationText: {
-        color: colors.secondary,
-        fontSize: fontSize.xs,
-    },
-    submitButton: {
-        width: "100%",
-        height: 48,
-        borderRadius: borderRadius.xl,
-        backgroundColor: colors.primary,
+    logo: {
+        width: 76,
+        height: 76,
+        borderRadius: 24,
+        backgroundColor: appColors.primaryFixed,
         alignItems: "center",
         justifyContent: "center",
-        marginTop: spacing.sm,
+        marginBottom: 18,
     },
-    submitText: {
-        color: colors["on-primary"],
-        fontSize: fontSize.sm,
+    title: {
+        fontSize: 25,
+        fontWeight: "700",
+        color: appColors.text,
+    },
+    subtitle: {
+        fontSize: 13,
+        color: appColors.secondary,
+        marginTop: 8,
+        textAlign: "center",
+    },
+    form: {
+        backgroundColor: appColors.white,
+        borderRadius: 16,
+        padding: 20,
+        gap: 18,
+    },
+    forgotButton: {
+        alignSelf: "flex-end",
+        marginTop: -8,
+    },
+    forgotText: {
+        color: appColors.primary,
+        fontSize: 12,
         fontWeight: "600",
+    },
+    divider: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+    },
+    line: {
+        flex: 1,
+        height: 1,
+        backgroundColor: appColors.border,
+    },
+    orText: {
+        fontSize: 11,
+        color: appColors.secondary,
     },
     signupPrompt: {
         flexDirection: "row",
         justifyContent: "center",
-        alignItems: "center",
-        gap: 6,
-        marginTop: spacing.md,
+        gap: 5,
     },
-    signupPromptText: {
-        color: colors.secondary,
-        fontSize: fontSize.sm,
+    promptText: {
+        fontSize: 12,
+        color: appColors.secondary,
     },
     signupLink: {
-        color: colors.primary,
-        fontSize: fontSize.sm,
-        fontWeight: "600",
-    },
-    dividerContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        paddingVertical: spacing.sm,
-        marginTop: spacing.md,
-    },
-    divider: {
-        flex: 1,
-        height: 1,
-        backgroundColor: colors["surface-container-high"],
-    },
-    dividerText: {
-        marginHorizontal: spacing.md,
-        fontSize: fontSize.xs,
-        color: colors.secondary,
-        textTransform: "uppercase",
-    },
-    socialContainer: {
-        flexDirection: "row",
-        gap: 12,
-    },
-    socialButton: {
-        flex: 1,
-        height: 48,
-        borderRadius: borderRadius.xl,
-        backgroundColor: colors["surface-container-lowest"],
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    socialText: {
-        color: colors["on-surface"],
-        fontSize: fontSize.sm,
-        fontWeight: "500",
+        fontSize: 12,
+        fontWeight: "700",
+        color: appColors.primary,
     },
     terms: {
-        fontSize: fontSize.xs,
-        color: colors.secondary,
+        fontSize: 11,
+        color: appColors.secondary,
         textAlign: "center",
-        paddingHorizontal: spacing.md,
-        lineHeight: 20,
-        marginTop: spacing.lg,
-    },
-    termsLink: {
-        color: colors["on-surface"],
-        textDecorationLine: "underline",
+        marginTop: 24,
+        lineHeight: 18,
     },
 });
