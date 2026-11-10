@@ -101,7 +101,7 @@ export default function Home() {
     );
 
     return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
+        <SafeAreaView className="flex-1 bg-surface" edges={["top"]}>
             <StatusBar barStyle="dark-content" />
 
             <AppNavbar
@@ -117,27 +117,30 @@ export default function Home() {
             />
 
             <ScrollView
-                contentContainerStyle={styles.content}
+                contentContainerClassName="p-4 pb-6 gap-4"
                 showsVerticalScrollIndicator={false}
             >
-                <View style={styles.greeting}>
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.greetingTitle}>
+                {/* Greeting */}
+                <View className="flex-row items-center">
+                    <View className="flex-1">
+                        <Text className="text-xl font-bold text-text">
                             Good morning
                         </Text>
 
-                        <Text style={styles.subtitle}>
+                        <Text className="text-xs text-secondary mt-1">
                             Ready to nourish your body today?
                         </Text>
                     </View>
 
                     <AppImage
                         name="avatar"
-                        style={styles.avatar}
+                        className="w-12 h-12 rounded-full"
+                        style={{ width: 48, height: 48, borderRadius: 24 }}
                     />
                 </View>
 
-                <View style={styles.searchBox}>
+                {/* Search */}
+                <View className="h-12 flex-row items-center gap-2.5 px-3.5 bg-white rounded-xl">
                     <MaterialCommunityIcons
                         name="magnify"
                         size={22}
@@ -149,30 +152,30 @@ export default function Home() {
                         onChangeText={setSearch}
                         placeholder="Search healthy meals..."
                         placeholderTextColor={appColors.muted}
-                        style={styles.searchInput}
+                        className="flex-1 text-text"
                     />
                 </View>
 
+                {/* Categories */}
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.categories}
+                    contentContainerClassName="flex-row gap-2.5 px-4"
                 >
                     {categories.map((item) => (
                         <Pressable
                             key={item}
                             onPress={() => setCategory(item)}
-                            style={[
-                                styles.category,
-                                category === item && styles.categoryActive,
-                            ]}
+                            className={`py-2.5 px-[18px] rounded-full ${category === item
+                                    ? "bg-primary"
+                                    : "bg-[#F0F0F0]"
+                                }`}
                         >
                             <Text
-                                style={[
-                                    styles.categoryText,
-                                    category === item &&
-                                    styles.categoryTextActive,
-                                ]}
+                                className={`text-sm ${category === item
+                                        ? "text-white font-bold"
+                                        : "text-[#555555]"
+                                    }`}
                             >
                                 {item}
                             </Text>
@@ -180,22 +183,23 @@ export default function Home() {
                     ))}
                 </ScrollView>
 
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>
+                {/* Recommended Meals */}
+                <View className="flex-row justify-between items-center">
+                    <Text className="text-base font-bold text-text">
                         Recommended for You
                     </Text>
 
                     <Pressable
                         onPress={() => navigation.navigate("Cart")}
                     >
-                        <Text style={styles.link}>
+                        <Text className="text-primary text-[13px]">
                             See all
                         </Text>
                     </Pressable>
                 </View>
 
                 {filteredMeals.length === 0 ? (
-                    <Text style={styles.emptyText}>
+                    <Text className="text-center text-secondary p-6">
                         No meals found.
                     </Text>
                 ) : (
@@ -207,7 +211,7 @@ export default function Home() {
                         return (
                             <View
                                 key={meal.id}
-                                style={styles.mealCard}
+                                className="flex-row p-3 gap-3 rounded-xl bg-white"
                             >
                                 <Pressable
                                     onPress={() =>
@@ -218,33 +222,35 @@ export default function Home() {
                                 >
                                     <AppImage
                                         name={meal.image}
-                                        style={styles.mealImage}
+                                        style={{
+                                            width: 100,
+                                            height: 110,
+                                            borderRadius: 10,
+                                        }}
                                     />
                                 </Pressable>
 
-                                <View style={styles.mealContent}>
-                                    <Text style={styles.mealName}>
+                                <View className="flex-1 justify-between">
+                                    <Text className="text-[13px] font-bold text-text">
                                         {meal.name}
                                     </Text>
 
-                                    <Text style={styles.mealInfo}>
+                                    <Text className="text-[11px] text-secondary mt-1">
                                         {meal.calories} kcal · {meal.nutrition}
                                     </Text>
 
-                                    <Text style={styles.mealCategory}>
+                                    <Text className="self-start bg-input text-primary px-2 py-1 rounded-[10px] text-[10px] mt-1">
                                         {meal.category}
                                     </Text>
 
-                                    <View style={styles.mealBottom}>
-                                        <Text style={styles.price}>
+                                    <View className="flex-row justify-between items-center mt-2">
+                                        <Text className="text-base font-bold text-text">
                                             {meal.price}
                                         </Text>
 
                                         <Pressable
-                                            onPress={() =>
-                                                addToCart(meal.id)
-                                            }
-                                            style={styles.addButton}
+                                            onPress={() => addToCart(meal.id)}
+                                            className="w-[34px] h-[34px] rounded-full bg-primary items-center justify-center"
                                         >
                                             <MaterialCommunityIcons
                                                 name={
@@ -263,32 +269,37 @@ export default function Home() {
                     })
                 )}
 
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>
+                {/* Featured Specialist */}
+                <View className="flex-row justify-between items-center">
+                    <Text className="text-base font-bold text-text">
                         Featured Specialist
                     </Text>
 
-                    <Text style={styles.available}>
+                    <Text className="text-primary text-[11px] font-semibold">
                         Available Now
                     </Text>
                 </View>
 
-                <View style={styles.specialistCard}>
+                <View className="flex-row items-center gap-3 p-3 bg-white rounded-xl">
                     <AppImage
                         name="specialist"
-                        style={styles.specialistImage}
+                        style={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: 12,
+                        }}
                     />
 
-                    <View style={{ flex: 1 }}>
-                        <Text style={styles.specialistName}>
+                    <View className="flex-1">
+                        <Text className="font-bold text-text text-[13px]">
                             Dr. Sarah Alperin, RD
                         </Text>
 
-                        <Text style={styles.mealInfo}>
+                        <Text className="text-[11px] text-secondary mt-1">
                             Clinical Dietitian
                         </Text>
 
-                        <Text style={styles.rating}>
+                        <Text className="text-[#d69b24] text-[11px] mt-1">
                             ★ 4.9 (124 reviews)
                         </Text>
                     </View>
@@ -301,18 +312,19 @@ export default function Home() {
                     }
                 />
 
-                <View style={styles.premiumCard}>
+                {/* Premium */}
+                <View className="bg-primary-fixed p-[18px] rounded-[14px] gap-2.5">
                     <MaterialCommunityIcons
                         name="crown"
                         size={30}
                         color={appColors.primary}
                     />
 
-                    <Text style={styles.premiumTitle}>
+                    <Text className="text-base font-bold text-text">
                         NutriCare Premium
                     </Text>
 
-                    <Text style={styles.subtitle}>
+                    <Text className="text-xs text-secondary">
                         Unlock personalized nutrition tracking.
                     </Text>
 
@@ -328,7 +340,8 @@ export default function Home() {
                 </View>
             </ScrollView>
 
-            <View style={styles.bottomNav}>
+            {/* Bottom Navigation */}
+            <View className="h-16 flex-row justify-around items-center bg-white border-t border-border">
                 <BottomNavItem
                     icon="home"
                     label="Home"
@@ -382,7 +395,7 @@ function BottomNavItem({
 }: BottomNavItemProps) {
     return (
         <Pressable
-            style={styles.navItem}
+            className="flex-1 items-center gap-[3px]"
             onPress={onPress}
         >
             <MaterialCommunityIcons
@@ -396,212 +409,11 @@ function BottomNavItem({
             />
 
             <Text
-                style={[
-                    styles.navLabel,
-                    active && {
-                        color: appColors.primary,
-                    },
-                ]}
+                className={`text-[10px] ${active ? "text-primary" : "text-secondary"
+                    }`}
             >
                 {label}
             </Text>
         </Pressable>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: appColors.surface,
-    },
-    content: {
-        padding: 16,
-        gap: 16,
-        paddingBottom: 24,
-    },
-    greeting: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    greetingTitle: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: appColors.text,
-    },
-    subtitle: {
-        fontSize: 12,
-        color: appColors.secondary,
-        marginTop: 4,
-    },
-    avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: 24,
-    },
-    searchBox: {
-        height: 48,
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 10,
-        paddingHorizontal: 14,
-        backgroundColor: appColors.white,
-        borderRadius: 12,
-    },
-    searchInput: {
-        flex: 1,
-        color: appColors.text,
-    },
-    categories: {
-        flexDirection: "row",
-        gap: 10,
-        paddingHorizontal: 16,
-    },
-    category: {
-        paddingVertical: 10,
-        paddingHorizontal: 18,
-        borderRadius: 20,
-        backgroundColor: "#F0F0F0",
-    },
-    categoryActive: {
-        backgroundColor: "#2E7D32",
-    },
-    categoryText: {
-        fontSize: 14,
-        color: "#555555",
-    },
-    categoryTextActive: {
-        color: "#FFFFFF",
-        fontWeight: "bold",
-    },
-    sectionHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    sectionTitle: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: appColors.text,
-    },
-    link: {
-        color: appColors.primary,
-        fontSize: 13,
-    },
-    mealCard: {
-        flexDirection: "row",
-        padding: 12,
-        gap: 12,
-        borderRadius: 12,
-        backgroundColor: appColors.white,
-    },
-    mealImage: {
-        width: 100,
-        height: 110,
-        borderRadius: 10,
-    },
-    mealContent: {
-        flex: 1,
-        justifyContent: "space-between",
-    },
-    mealName: {
-        fontSize: 13,
-        fontWeight: "700",
-        color: appColors.text,
-    },
-    mealInfo: {
-        fontSize: 11,
-        color: appColors.secondary,
-        marginTop: 5,
-    },
-    mealCategory: {
-        alignSelf: "flex-start",
-        backgroundColor: appColors.input,
-        color: appColors.primary,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 10,
-        fontSize: 10,
-        marginTop: 5,
-    },
-    mealBottom: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginTop: 8,
-    },
-    price: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: appColors.text,
-    },
-    addButton: {
-        width: 34,
-        height: 34,
-        borderRadius: 18,
-        backgroundColor: appColors.primary,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    emptyText: {
-        textAlign: "center",
-        color: appColors.secondary,
-        padding: 24,
-    },
-    available: {
-        color: appColors.primary,
-        fontSize: 11,
-        fontWeight: "600",
-    },
-    specialistCard: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: 12,
-        padding: 12,
-        backgroundColor: appColors.white,
-        borderRadius: 12,
-    },
-    specialistImage: {
-        width: 60,
-        height: 60,
-        borderRadius: 12,
-    },
-    specialistName: {
-        fontWeight: "700",
-        color: appColors.text,
-        fontSize: 13,
-    },
-    rating: {
-        color: "#d69b24",
-        fontSize: 11,
-        marginTop: 5,
-    },
-    premiumCard: {
-        backgroundColor: appColors.primaryFixed,
-        padding: 18,
-        borderRadius: 14,
-        gap: 10,
-    },
-    premiumTitle: {
-        fontSize: 16,
-        fontWeight: "700",
-        color: appColors.text,
-    },
-    bottomNav: {
-        height: 64,
-        flexDirection: "row",
-        justifyContent: "space-around",
-        alignItems: "center",
-        backgroundColor: appColors.white,
-        borderTopWidth: 1,
-        borderTopColor: appColors.border,
-    },
-    navItem: {
-        flex: 1,
-        alignItems: "center",
-        gap: 3,
-    },
-    navLabel: {
-        fontSize: 10,
-        color: appColors.secondary,
-    },
-});
